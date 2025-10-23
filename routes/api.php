@@ -19,4 +19,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/timesheets/{id}/approve', [TimesheetController::class, 'approve']);
     Route::patch('/timesheets/{id}/reject', [TimesheetController::class, 'reject']);
     Route::get('/timesheets/stats', [TimesheetController::class, 'stats']);
+    Route::put('/timesheets/{id}', [TimesheetController::class, 'update']);
+Route::delete('/timesheets/{id}', [TimesheetController::class, 'destroy']);
 });

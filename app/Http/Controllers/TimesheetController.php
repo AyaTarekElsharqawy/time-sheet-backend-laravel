@@ -147,4 +147,67 @@ class TimesheetController extends Controller
             'average_hours' => $average_hours,
         ]);
     }
+
+    
+
+public function update(Request $request, $id)
+{
+    $validator = Validator::make($request->all(), [
+        'project' => 'required|string|max:255',
+        'hours_worked' => 'required|numeric|min:1|max:12',
+        'date' => 'required|date|before_or_equal:today',
+        'notes' => 'nullable|string',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+
+    $timesheet = Timesheet::findOrFail($id);
+    
+    // Check if user owns this timesheet or is admin
+    if ($request->user()->role !== 'admin' && $timesheet->user_id !== $request->user()->id) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+
+    // Check for duplicate (excluding current timesheet)
+    $duplicate = Timesheet::where('user_id', $request->user()->id)
+        ->where('project', $request->project)
+        ->where('date', $request->date)
+        ->where('id', '!=', $id)
+        ->first();
+
+    if ($duplicate) {
+        return response()->json(['error' => 'This project is already logged for today.'], 409);
+    }
+
+    $timesheet->update([
+        'project' => $request->project,
+        'hours_worked' => $request->hours_worked,
+        'date' => $request->date,
+        'notes' => $request->notes,
+        'status' => 'Pending', // Reset status when editing
+        'approved_by' => null,
+        'approved_at' => null,
+    ]);
+
+    return response()->json([
+        'message' => 'Timesheet updated successfully.',
+        'data' => $timesheet
+    ]);
+}
+
+public function destroy($id, Request $request)
+{
+    $timesheet = Timesheet::findOrFail($id);
+
+    // Check if user owns this timesheet or is admin
+    if ($request->user()->role !== 'admin' && $timesheet->user_id !== $request->user()->id) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+
+    $timesheet->delete();
+
+    return response()->json(['message' => 'Timesheet deleted successfully.']);
+}
 }
