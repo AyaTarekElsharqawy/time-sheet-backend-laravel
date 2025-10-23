@@ -5,6 +5,8 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 
+// Middleware to restrict routes to admin users only.
+// Returns 403 JSON response for non-admins.
 class AdminMiddleware
 {
     public function handle(Request $request, Closure $next)

@@ -1,61 +1,169 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Timesheets System (Laravel)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This repository contains the backend API for a small timesheet management system built with Laravel. It includes user authentication, timesheet CRUD, admin approval/rejection flows, and basic statistics.
 
-## About Laravel
+## Table of contents
+- Setup and running
+- Design decisions
+- Technology stack
+- API documentation
+- Assumptions and limitations
+- Future improvements
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Setup and running
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Requirements
+- PHP 8.2+
+- Composer
+- Node.js + npm (optional, for asset building)
+- SQLite (included for local development) or another database (MySQL/Postgres)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Quick start (Windows PowerShell)
 
-## Learning Laravel
+1. Install PHP dependencies
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+    composer install
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+2. Copy environment and generate an app key
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+    copy .env.example .env; php artisan key:generate
 
-## Laravel Sponsors
+3. Ensure the local SQLite database file exists and run migrations/seeds
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+    php -r "file_exists('database/database.sqlite') || touch('database/database.sqlite');"
+    php artisan migrate --seed
 
-### Premium Partners
+4. (Optional) Install JS dependencies and build assets
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+    npm install; npm run build
 
-## Contributing
+5. Run the development server
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+    php artisan serve
 
-## Code of Conduct
+The API base URL is: http://127.0.0.1:8000/api
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Design decisions
 
-## Security Vulnerabilities
+Problem domain
+- Focus: a backend API for timesheet entry and approval suited for small teams.
+- Core features implemented: authentication, timesheet create/read/update/delete, duplicate detection (prevent logging same project on same date per user), admin approve/reject, and basic stats.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Why this approach
+- Laravel provides batteries-included features (auth, migrations, Eloquent) which accelerate building a reliable API.
+- Sanctum tokens make it simple to secure the API for SPAs and mobile clients.
 
-## License
+Roles and behavior
+- Users have a `role` (string) that controls behavior: `employee` or `admin`.
+- Employees can manage only their timesheets; admins can manage and approve/reject any timesheet.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Technology stack
+
+- PHP 8.2
+- Laravel 12
+- Laravel Sanctum (authentication)
+- SQLite for local development (DB configurable in `.env`)
+- Vite + npm for asset pipeline (minimal frontend assets included)
+- PHPUnit for testing (project scaffold)
+
+## API documentation
+
+Base path: /api
+
+Authentication
+- Register
+  - POST /api/register
+  - Body: { name, email, password, password_confirmation }
+  - Response: user object and token
+
+- Login
+  - POST /api/login
+  - Body: { email, password }
+  - Response: { token }
+
+- Logout
+  - POST /api/logout (auth required)
+
+- Current user
+  - GET /api/user (auth required)
+
+Timesheets (requires auth:sanctum)
+- List timesheets
+  - GET /api/timesheets
+  - Query params (optional): status, project (partial), date_from, date_to
+  - Employees see their own records; admins see all.
+  - Response: array of timesheet objects
+
+- Create timesheet
+  - POST /api/timesheets
+  - Body: { project: string, hours_worked: number (1-12), date: YYYY-MM-DD, notes?: string }
+  - Validations: project required, hours_worked between 1 and 12, date <= today
+  - Duplicate rule: same user + same project + same date => 409 Conflict
+  - Response: 201 with created timesheet
+
+- Update timesheet
+  - PUT /api/timesheets/{id}
+  - Body: same as create
+  - Only owner or admin can update. Updating resets status to `Pending` and clears approval fields.
+
+- Delete timesheet
+  - DELETE /api/timesheets/{id}
+  - Only owner or admin can delete.
+
+- Approve timesheet
+  - PATCH /api/timesheets/{id}/approve
+  - Admin-only. Sets status to `Approved`, records `approved_by` and `approved_at`.
+
+- Reject timesheet
+  - PATCH /api/timesheets/{id}/reject
+  - Admin-only. Sets status to `Rejected`, records `approved_by` and `approved_at`.
+
+- Stats
+  - GET /api/timesheets/stats
+  - Employees: scoped to their own records. Admins: global statistics.
+  - Response: { total, approved, pending, rejected, total_hours, average_hours }
+
+Timesheet response shape
+```
+{
+  id: number,
+  user_id: number,
+  project: string,
+  hours_worked: number,
+  date: "YYYY-MM-DD",
+  notes: string|null,
+  status: "Pending"|"Approved"|"Rejected",
+  approved_by: number|null,
+  approved_at: datetime|null,
+  created_at: datetime,
+  updated_at: datetime
+}
+```
+
+Errors
+- Validation errors: 422 { errors: { field: [messages] } }
+- Unauthorized: 401 (not authenticated) or 403 (authenticated but forbidden)
+- Duplicate entry: 409 { error: 'This project is already logged for today.' }
+
+## Assumptions and limitations
+
+- Users table has a `role` string column containing `employee` or `admin`.
+- Sanctum powers authentication and route protection via `auth:sanctum`.
+- No pagination or sorting on list endpoints (may be needed for large data).
+- No email notifications or external integrations for approvals.
+- No audit logging; updates overwrite fields directly.
+
+## Future improvements
+
+If given more time, recommended enhancements:
+- Add pagination, sorting, and more flexible filtering to `GET /api/timesheets`.
+- Replace inline role checks with Laravel Policies/Gates for clearer authorization.
+- Add feature tests (integration) covering happy paths and edge cases.
+- Add soft deletes and an audit log for changes (who changed what and when).
+- Add rate-limiting, input sanitization, and stricter validation rules.
+- Add OpenAPI/Swagger documentation and example Postman collection.
+- Add email/Slack notifications for approvals and rejections.
+
+---
+
+Need anything more? I can add example curl/Postman requests, automated tests for the Timesheet controller, or pagination on the list endpoint.

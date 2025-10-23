@@ -7,9 +7,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 
+// Controller that handles timesheet CRUD, approval/rejection, and stats.
+// Key behaviors:
+// - Employees can manage their own timesheets.
+// - Admins can view all timesheets and approve/reject entries.
 class TimesheetController extends Controller
 {
    
+    /**
+     * Create a new timesheet entry
+     * Validates input, checks duplicate per user/project/date and sets status to Pending.
+     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -51,6 +59,10 @@ class TimesheetController extends Controller
         ], 201);
     }
 
+    /**
+     * List timesheets
+     * Supports filtering by status, project, and date range. Employees are scoped to their own records.
+     */
     public function index(Request $request)
     {
         $user = $request->user();
@@ -78,6 +90,10 @@ class TimesheetController extends Controller
     }
 
    
+    /**
+     * Approve a timesheet (admin only)
+     * Sets status to Approved and records approver and timestamp.
+     */
     public function approve($id, Request $request)
     {
         $user = $request->user();
@@ -97,6 +113,10 @@ class TimesheetController extends Controller
     }
 
     
+    /**
+     * Reject a timesheet (admin only)
+     * Sets status to Rejected and records approver and timestamp.
+     */
     public function reject($id, Request $request)
     {
         $user = $request->user();
@@ -116,6 +136,10 @@ class TimesheetController extends Controller
     }
 
    
+    /**
+     * Return statistics about timesheets
+     * Employees receive personal stats; admins receive global stats.
+     */
     public function stats(Request $request)
     {
         $user = $request->user();
@@ -150,7 +174,11 @@ class TimesheetController extends Controller
 
     
 
-public function update(Request $request, $id)
+    /**
+     * Update a timesheet
+     * Only owner or admin can update. Update resets status to Pending and clears approval fields.
+     */
+    public function update(Request $request, $id)
 {
     $validator = Validator::make($request->all(), [
         'project' => 'required|string|max:255',
@@ -197,7 +225,11 @@ public function update(Request $request, $id)
     ]);
 }
 
-public function destroy($id, Request $request)
+    /**
+     * Delete a timesheet
+     * Only owner or admin can delete.
+     */
+    public function destroy($id, Request $request)
 {
     $timesheet = Timesheet::findOrFail($id);
 

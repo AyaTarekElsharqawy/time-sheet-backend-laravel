@@ -10,8 +10,12 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
+    // Controller responsible for user authentication (register, login, logout)
+    // Uses Sanctum tokens for API authentication.
+
     /**
      * Register new user
+     * Accepts name, email, password and role. Returns user and token.
      */
     public function register(Request $request)
     {
@@ -57,6 +61,7 @@ class AuthController extends Controller
 
     /**
      * Login user
+     * Validates credentials and returns an access token on success.
      */
     public function login(Request $request)
     {
@@ -103,6 +108,7 @@ class AuthController extends Controller
 
     /**
      * Logout user
+     * Revokes the current access token.
      */
     public function logout(Request $request)
     {
@@ -117,6 +123,7 @@ class AuthController extends Controller
 
     /**
      * Get current user
+     * Returns a minimal user object for the authenticated token.
      */
     public function user(Request $request)
     {
@@ -133,6 +140,7 @@ class AuthController extends Controller
 
     /**
      * Update user profile
+     * Allows updating name and email for the current user.
      */
     public function updateProfile(Request $request)
     {
@@ -169,6 +177,7 @@ class AuthController extends Controller
 
     /**
      * Change password
+     * Requires current password and confirmation for the new one.
      */
     public function changePassword(Request $request)
     {
