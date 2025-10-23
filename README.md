@@ -164,6 +164,4 @@ If given more time, recommended enhancements:
 - Add OpenAPI/Swagger documentation and example Postman collection.
 - Add email/Slack notifications for approvals and rejections.
 
----
 
-Need anything more? I can add example curl/Postman requests, automated tests for the Timesheet controller, or pagination on the list endpoint.
