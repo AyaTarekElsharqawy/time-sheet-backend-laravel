@@ -1,6 +1,11 @@
 # Timesheets System (Laravel)
 
-This repository contains the backend API for a small timesheet management system built with Laravel. It includes user authentication, timesheet CRUD, admin approval/rejection flows, and basic statistics.
+The Timesheet Management System is a full-stack web application that helps organizations manage employee working hours efficiently.
+It allows employees to log their daily working hours for specific projects and lets administrators review, approve, or reject those submissions through a clean, user-friendly interface.
+
+This system demonstrates a complete workflow including authentication, CRUD operations, role-based access control, API communication, and real-time interaction between frontend and backend.
+
+It was developed as part of a developer assessment task to show skills in full-stack web development using Laravel (backend) and Vue.js (frontend).
 
 ## Table of contents
 - Setup and running
@@ -156,12 +161,10 @@ Errors
 ## Future improvements
 
 If given more time, recommended enhancements:
-- Add pagination, sorting, and more flexible filtering to `GET /api/timesheets`.
-- Replace inline role checks with Laravel Policies/Gates for clearer authorization.
+
 - Add feature tests (integration) covering happy paths and edge cases.
-- Add soft deletes and an audit log for changes (who changed what and when).
-- Add rate-limiting, input sanitization, and stricter validation rules.
-- Add OpenAPI/Swagger documentation and example Postman collection.
+- Add soft deletes and an audit log for changes (who changed collection).
 - Add email/Slack notifications for approvals and rejections.
 
 
+# demo link :
