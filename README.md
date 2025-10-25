@@ -145,26 +145,17 @@ Timesheet response shape
 }
 ```
 
-Errors
-- Validation errors: 422 { errors: { field: [messages] } }
-- Unauthorized: 401 (not authenticated) or 403 (authenticated but forbidden)
-- Duplicate entry: 409 { error: 'This project is already logged for today.' }
 
 ## Assumptions and limitations
 
 - Users table has a `role` string column containing `employee` or `admin`.
 - Sanctum powers authentication and route protection via `auth:sanctum`.
-- No pagination or sorting on list endpoints (may be needed for large data).
 - No email notifications or external integrations for approvals.
-- No audit logging; updates overwrite fields directly.
 
 ## Future improvements
 
-If given more time, recommended enhancements:
-
-- Add feature tests (integration) covering happy paths and edge cases.
-- Add soft deletes and an audit log for changes (who changed collection).
 - Add email/Slack notifications for approvals and rejections.
 
 
 # demo link :
+https://drive.google.com/drive/folders/1hWyPU9x93xdCKLy4yvWtXXLptm7bNtpr?usp=sharing
